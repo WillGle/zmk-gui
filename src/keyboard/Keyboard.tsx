@@ -478,10 +478,10 @@ export default function Keyboard() {
       )}
       {keymap && selectedBinding && (
         <div className="p-4 col-start-1 row-start-3 md:col-start-2 md:row-start-2 bg-base-200 overflow-auto">
-          <p className="mb-3 font-semibold">
+          <p className="mb-2 text-lg font-semibold">
             Key {(selectedKeyPosition ?? 0) + 1} · Layer {selectedLayerIndex}: {keymap.layers[selectedLayerIndex]?.name || "Unnamed"}
           </p>
-          <p className="mb-3 text-sm text-base-content/70">Choose a binding type, then search for a key or media action. Changes apply temporarily; use Save to keep them.</p>
+          <p className="mb-4 text-sm">Choose a binding below. Changes apply temporarily; use Save to keep them.</p>
           <BehaviorBindingPicker
             key={`${selectedLayerIndex}-${selectedKeyPosition}-${pickerVersion}`}
             binding={selectedBinding}

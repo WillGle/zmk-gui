@@ -80,25 +80,25 @@ export const BehaviorBindingPicker = ({
   }, [binding]);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="flex flex-col gap-1 min-w-0 max-w-full">
-          <label htmlFor={searchId}>Find binding</label>
+    <div className="flex flex-col gap-5 max-w-5xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl border border-base-content/20 bg-base-100 p-4">
+        <div className="flex flex-col gap-2 min-w-0">
+          <label className="font-semibold" htmlFor={searchId}>Find binding</label>
           <input
             id={searchId}
             type="search"
             placeholder="Search binding types…"
-            className="h-10 rounded px-3 max-w-full bg-base-100 border border-base-content/20"
+            className="h-11 rounded-lg px-3 w-full bg-base-200 border border-base-content/30 placeholder:text-base-content/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <div className="flex flex-col gap-1 min-w-0 max-w-full">
-          <label htmlFor={behaviorSelectId}>Binding type</label>
+        <div className="flex flex-col gap-2 min-w-0">
+          <label className="font-semibold" htmlFor={behaviorSelectId}>Binding type</label>
           <select
             id={behaviorSelectId}
             value={behaviorId}
-            className="h-10 rounded px-3 max-w-full bg-base-100"
+            className="h-11 rounded-lg px-3 w-full bg-base-200 border border-base-content/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
             onChange={(e) => {
               const nextBehaviorId = parseInt(e.target.value);
               setBehaviorId(nextBehaviorId);
@@ -123,7 +123,7 @@ export const BehaviorBindingPicker = ({
             ))}
           </select>
         </div>
-        <p className="text-sm text-base-content/70" role="status">
+        <p className="sm:col-span-2 text-sm" role="status">
           {filteredBehaviors.length} binding types found
         </p>
       </div>

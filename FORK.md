@@ -137,6 +137,22 @@ upstream glob 10) remain separate from the zero-advisory result. Firmware,
 hardware and device writes were not used. GitHub runner, Vercel deployment and
 real-device acceptance remain unverified; no commit, push or deployment.
 
+## Binding editor readability — 2026-10-29
+
+- Separated binding-type search/selection from key/media and modifier controls
+  using bordered surfaces, stronger labels, spacing and consistent 44 px fields.
+- Key search has its own hint; optional modifiers appear in a labeled grid with
+  visible borders, focus outlines and a checkmark plus highlight when selected.
+- Controls stack on narrow screens. Selected key/layer context is larger and
+  temporary-change guidance is shorter. Binding callbacks, validation, Studio
+  transport and explicit Save behavior are unchanged.
+- Verified lint and production build, and disposable Chromium source fixtures:
+  key search/selection, modifier selection, parameter labels, keyboard layer/footer
+  actions, and light/dark layouts at 1440 px and 390 px. Modifier targets are at
+  least 44 px tall; fixture pages have no horizontal overflow or page errors.
+  Screenshots/logs are under `/tmp/zmk-binding-*` and `/tmp/zmk-readability-probe*`.
+  No real device or device writes were used.
+
 ## Repository file cleanup — 2026-10-28
 
 Reviewed tracked source, hidden configuration, assets, build/CI/Vercel entrypoints

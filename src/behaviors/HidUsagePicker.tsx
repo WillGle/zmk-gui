@@ -150,47 +150,54 @@ export const HidUsagePicker = ({
   );
 
   return (
-    <div className="flex flex-wrap gap-3 relative items-center">
-      {label && <Label id={labelId}>{label}:</Label>}
-      <ComboBox
-        selectedKey={value ? mask_mods(value) : null}
-        onSelectionChange={selectionChanged}
-        aria-labelledby={label ? labelId : undefined}
-        aria-label={label ? undefined : "Key or media binding"}
-        onInputChange={setQuery}
-        onOpenChange={(open) => { if (!open) setQuery(""); }}
-      >
-        <div className="flex">
-          <Input placeholder="Search keys or media…" className="h-10 p-2 rounded-l bg-base-100" />
-          <Button aria-label="Show keys and media" className="rounded-r bg-primary text-primary-content w-10 h-10 flex justify-center items-center">
-            <ChevronDown className="size-4" aria-hidden="true" />
-          </Button>
-        </div>
-        <Popover className="w-[var(--trigger-width)] shadow-md text-base-content rounded border-base-content bg-base-100">
-          <ListBox
-            items={usagePages}
-            className="block max-h-[30vh] min-h-[unset] overflow-auto p-2"
-            selectionMode="single"
-          >
-            {({ id, min, max }) => <UsageSection id={id} min={min} max={max} query={query} />}
-          </ListBox>
-        </Popover>
-      </ComboBox>
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(16rem,1fr)_minmax(0,2fr)] gap-5 rounded-xl border border-base-content/20 bg-base-100 p-4">
+      <div className="flex flex-col gap-2 min-w-0">
+        <Label id={labelId} className="font-semibold">{label || "Key or media binding"}</Label>
+        <ComboBox
+          selectedKey={value ? mask_mods(value) : null}
+          onSelectionChange={selectionChanged}
+          aria-labelledby={label ? labelId : undefined}
+          aria-label={label ? undefined : "Key or media binding"}
+          onInputChange={setQuery}
+          onOpenChange={(open) => { if (!open) setQuery(""); }}
+        >
+          <div className="flex">
+            <Input placeholder="Search keys or media…" className="h-11 px-3 rounded-l-lg bg-base-200 border border-base-content/30 min-w-0 w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent" />
+            <Button aria-label="Show keys and media" className="rounded-r-lg bg-primary text-primary-content w-11 h-11 shrink-0 flex justify-center items-center rac-focus-visible:outline rac-focus-visible:outline-2 rac-focus-visible:outline-accent">
+              <ChevronDown className="size-4" aria-hidden="true" />
+            </Button>
+          </div>
+          <Popover className="w-[var(--trigger-width)] shadow-md text-base-content rounded border-base-content bg-base-100">
+            <ListBox
+              items={usagePages}
+              className="block max-h-[30vh] min-h-[unset] overflow-auto p-2"
+              selectionMode="single"
+            >
+              {({ id, min, max }) => <UsageSection id={id} min={min} max={max} query={query} />}
+            </ListBox>
+          </Popover>
+        </ComboBox>
+        <p className="text-sm">Type a key or media name to search.</p>
+      </div>
       <CheckboxGroup
         aria-label="Implicit Modifiers"
-        className="flex flex-wrap gap-1 rounded-md"
+        className="flex flex-col gap-2 min-w-0"
         value={mods}
         onChange={modifiersChanged}
       >
-        {all_mods.map((m) => (
-          <Checkbox
-            key={m}
-            value={m.toLocaleString()}
-            className="text-nowrap cursor-pointer grid px-2 min-h-10 content-center justify-center rac-selected:bg-primary border-base-100 bg-base-300 hover:bg-base-100 first:rounded-s-md last:rounded-e-md rac-selected:text-primary-content"
-          >
-            {mod_labels[m]}
-          </Checkbox>
-        ))}
+        <Label className="font-semibold">Modifiers <span className="font-normal text-sm">(optional)</span></Label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {all_mods.map((m) => (
+            <Checkbox
+              key={m}
+              value={m.toLocaleString()}
+              className="cursor-pointer flex items-center justify-center gap-2 px-2 min-h-11 rounded-lg border border-base-content/30 bg-base-200 hover:border-primary rac-selected:bg-primary rac-selected:text-primary-content rac-selected:border-primary rac-focus-visible:outline rac-focus-visible:outline-2 rac-focus-visible:outline-offset-2 rac-focus-visible:outline-accent"
+            >
+              {({ isSelected }) => <><span aria-hidden="true" className="w-4 text-center">{isSelected ? "✓" : "+"}</span>{mod_labels[m]}</>}
+            </Checkbox>
+          ))}
+        </div>
+        <p className="text-sm">Highlighted modifiers are included in the binding.</p>
       </CheckboxGroup>
     </div>
   );
