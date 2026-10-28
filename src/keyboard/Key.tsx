@@ -8,6 +8,7 @@ interface KeyProps {
   oneU: number;
   header?: string;
   onClick?: () => void;
+  label?: string;
 }
 
 interface BehaviorShortName {
@@ -41,6 +42,7 @@ export const Key = ({
   oneU,
   header,
   onClick,
+  label,
   children,
 }: PropsWithChildren<KeyProps>) => {
   const pixelWidth = width * oneU - 2;
@@ -48,15 +50,18 @@ export const Key = ({
 
   return (
     <button
-      className={`group rounded relative flex justify-center items-center cursor-pointer transition-all hover:shadow-xl hover:ring-1 hover:ring-gray-300 hover:scale-125 ${selected ? "bg-primary text-primary-content" : "bg-base-100 text-base-content"
-        }`}
+      type="button"
+      aria-label={label}
+      aria-pressed={selected}
+      title={label || header}
+      className={`group rounded-md relative flex justify-center items-center cursor-pointer border border-solid transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${selected ? "bg-primary text-primary-content border-primary ring-2 ring-primary ring-offset-2 ring-offset-base-300" : "bg-base-100 text-base-content border-base-content/20 hover:bg-base-200 hover:border-primary"}`}
       style={{
         width: `${pixelWidth}px`,
         height: `${pixelHeight}px`,
       }}
       onClick={onClick}
     >
-      <div className={`absolute text-xs ${selected ? "text-primary-content" : "z1text-base-content"} opacity-80 top-1 text-nowrap left-1/2 font-light -translate-x-1/2 text-center`}>{shortenHeader(header)}</div>
+      <div className={`absolute text-xs ${selected ? "text-primary-content" : "text-base-content"} opacity-80 top-1 text-nowrap left-1/2 font-light -translate-x-1/2 text-center`}>{shortenHeader(header)}</div>
       {children}
     </button>
   );

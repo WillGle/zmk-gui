@@ -10,6 +10,7 @@ import { Key } from "./Key";
 export type KeyPosition = PropsWithChildren<{
   id: string;
   header?: string;
+  label?: string;
   width: number;
   height: number;
   x: number;
@@ -127,17 +128,14 @@ export const PhysicalLayout = ({
     .reduce((a, b) => Math.max(a, b), 0);
 
   const positionItems = positions.map((p, idx) => (
-    <div className="absolute hover:z-10" style={scalePosition(p, oneU)}>
-      <div
-        key={p.id}
+    <div key={p.id} className="absolute focus-within:z-10" style={scalePosition(p, oneU)}>
+      <Key
+        {...p}
+        label={p.label || `Key ${idx + 1}: ${p.header || "Unknown"}`}
+        oneU={oneU}
+        selected={idx === selectedPosition}
         onClick={() => onPositionClicked?.(idx)}
-      >
-        <Key
-          oneU={oneU}
-          selected={idx === selectedPosition}
-          {...p}
-        />
-      </div>
+      />
     </div>
   ));
 
@@ -148,6 +146,7 @@ export const PhysicalLayout = ({
         height: bottomMost * oneU + "px",
         width: rightMost * oneU + "px",
         transform: `scale(${scale})`,
+        transformOrigin: typeof props.zoom === "number" ? "top left" : undefined,
         transformStyle: "preserve-3d",
       }}
       ref={ref}
