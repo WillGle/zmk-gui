@@ -137,6 +137,44 @@ upstream glob 10) remain separate from the zero-advisory result. Firmware,
 hardware and device writes were not used. GitHub runner, Vercel deployment and
 real-device acceptance remain unverified; no commit, push or deployment.
 
+## Repository file cleanup — 2026-10-28
+
+Reviewed tracked source, hidden configuration, assets, build/CI/Vercel entrypoints
+and Storybook references. Retained the existing working-tree deletion of the
+legacy `.devcontainer` (Fedora/Rust/Tauri setup and sibling firmware mount).
+Removed eight additional orphaned files, totaling 917,702 bytes:
+
+- `.pre-commit-config.yaml` and `requirements.txt`: optional upstream Python
+  hook setup, not installed in this checkout or invoked by npm/CI. The npm
+  Prettier package/configuration and CI lint gate remain.
+- `public/zmk-mac.png`, `public/zmk-mac-app-icon.webp`, `public/vite.svg`:
+  desktop artwork and Vite template logo with no remaining consumers.
+- `src/assets/mode.svg`: unused alternative; About retains Mode's PNG logos.
+- `src/misc/async.ts`: unused `valueAfter` helper.
+- `src/react-extra.d.ts`: unused React CSS custom-property augmentation;
+  TypeScript compilation succeeds without it.
+
+Removed obsolete `src/data`/`dist-ssr` ignore entries and the empty Storybook MDX
+search pattern. No package, lockfile, protocol, transport or keymap logic changed.
+Storybook and its demos, formatter configuration, build/hosting configuration,
+LICENSE, NOTICE, upstream changelog and displayed sponsor attribution remain.
+The complete HID table is retained as the source of the filtered runtime table;
+the documented filter was checked to reproduce the runtime data exactly.
+Also removed the ignored `src/data/release-data.json` left by the retired
+release-metadata generator (13,542 bytes); no current source/configuration reads
+it. Local dependencies, current build output, setup logs and environment-owned
+folders were retained.
+
+Verification: all 46 remaining code files are reachable from web, Storybook,
+configuration or ambient type entrypoints; 107 relative imports resolve.
+`npm run lint`, `npm run build` and the Storybook build passed. Storybook still
+contains all 28 entries. Removed public assets are absent from `dist/`, while the
+ZMK logo and Inter font remain. Existing bundle-size warnings remain. Browser
+production inspection passed app startup, all 14 About sponsor images in light
+and dark mode, and NOTICE display, with zero page errors or failed HTTP
+responses. It did not exercise USB/BLE or Save. No maintained tests, firmware/device
+operations, commits, pushes or deployment were performed.
+
 ## Web-only cleanup — 2026-10-28
 
 - Removed Tauri native source, desktop transport adapters, signing configuration
