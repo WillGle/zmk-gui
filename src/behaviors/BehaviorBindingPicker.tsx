@@ -28,7 +28,7 @@ function validateBinding(
     return true;
   }
 
-  let matchingSet = metadata.find((s) =>
+  const matchingSet = metadata.find((s) =>
     validateValue(layerIds, param1, s.param1)
   );
 
@@ -66,38 +66,12 @@ export const BehaviorBindingPicker = ({
     b.displayName.toLowerCase().includes(query.trim().toLowerCase())
   );
 
-  useEffect(() => {
-    if (
-      binding.behaviorId === behaviorId &&
-      binding.param1 === param1 &&
-      binding.param2 === param2
-    ) {
-      return;
+  const applyBinding = (nextBehaviorId: number, nextParam1?: number, nextParam2?: number) => {
+    const nextMetadata = behaviors.find((behavior) => behavior.id === nextBehaviorId)?.metadata;
+    if (nextMetadata && validateBinding(nextMetadata, layers.map(({ id }) => id), nextParam1, nextParam2)) {
+      onBindingChanged({ behaviorId: nextBehaviorId, param1: nextParam1 || 0, param2: nextParam2 || 0 });
     }
-
-    if (!metadata) {
-      console.error(
-        "Can't find metadata for the selected behaviorId",
-        behaviorId
-      );
-      return;
-    }
-
-    if (
-      validateBinding(
-        metadata,
-        layers.map(({ id }) => id),
-        param1,
-        param2
-      )
-    ) {
-      onBindingChanged({
-        behaviorId,
-        param1: param1 || 0,
-        param2: param2 || 0,
-      });
-    }
-  }, [behaviorId, param1, param2]);
+  };
 
   useEffect(() => {
     setBehaviorId(binding.behaviorId);
@@ -126,9 +100,11 @@ export const BehaviorBindingPicker = ({
             value={behaviorId}
             className="h-10 rounded px-3 max-w-full bg-base-100"
             onChange={(e) => {
-              setBehaviorId(parseInt(e.target.value));
+              const nextBehaviorId = parseInt(e.target.value);
+              setBehaviorId(nextBehaviorId);
               setParam1(0);
               setParam2(0);
+              applyBinding(nextBehaviorId, 0, 0);
             }}
           >
             {!filteredBehaviors.some((b) => b.id === behaviorId) && (
@@ -157,8 +133,14 @@ export const BehaviorBindingPicker = ({
           param1={param1}
           param2={param2}
           layers={layers}
-          onParam1Changed={setParam1}
-          onParam2Changed={setParam2}
+          onParam1Changed={(value) => {
+            setParam1(value);
+            applyBinding(behaviorId, value, param2);
+          }}
+          onParam2Changed={(value) => {
+            setParam2(value);
+            applyBinding(behaviorId, param1, value);
+          }}
         />
       )}
     </div>

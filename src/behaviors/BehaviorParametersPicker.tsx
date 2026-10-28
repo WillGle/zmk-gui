@@ -23,6 +23,7 @@ export const BehaviorParametersPicker = ({
     return (
       <div>
         <ParameterValuePicker
+          label="Parameter 1"
           values={metadata.flatMap((m) => m.param1)}
           onValueChanged={onParam1Changed}
           layers={layers}
@@ -40,6 +41,7 @@ export const BehaviorParametersPicker = ({
     return (
       <>
         <ParameterValuePicker
+          label="Parameter 1"
           values={metadata.flatMap((m) => m.param1)}
           value={param1}
           layers={layers}
@@ -47,6 +49,7 @@ export const BehaviorParametersPicker = ({
         />
         {(set?.param2?.length || 0) > 0 && (
           <ParameterValuePicker
+            label="Parameter 2"
             values={set!.param2}
             value={param2}
             layers={layers}

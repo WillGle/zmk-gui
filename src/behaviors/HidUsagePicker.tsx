@@ -38,7 +38,7 @@ type UsageSectionProps = HidUsagePage & { query: string };
 const UsageSection = ({ id, min, max, query }: UsageSectionProps) => {
   const info = useMemo(() => hid_usage_page_get_ids(id), [id]);
 
-  let usages = useMemo(() => {
+  const usages = useMemo(() => {
     let usages = info?.UsageIds || [];
     if (max || min) {
       usages = usages.filter(
@@ -118,7 +118,7 @@ export const HidUsagePicker = ({
   const labelId = useId();
   const [query, setQuery] = useState("");
   const mods = useMemo(() => {
-    let flags = value ? value >> 24 : 0;
+    const flags = value ? value >> 24 : 0;
 
     return all_mods.filter((m) => m & flags).map((m) => m.toLocaleString());
   }, [value]);
@@ -127,7 +127,7 @@ export const HidUsagePicker = ({
     (e: Key | null) => {
       let value = typeof e == "number" ? e : undefined;
       if (value !== undefined) {
-        let mod_flags = mods_to_flags(mods.map((m) => parseInt(m)));
+        const mod_flags = mods_to_flags(mods.map((m) => parseInt(m)));
         value = value | (mod_flags << 24);
       }
 
@@ -142,11 +142,11 @@ export const HidUsagePicker = ({
         return;
       }
 
-      let mod_flags = mods_to_flags(m.map((m) => parseInt(m)));
-      let new_value = mask_mods(value) | (mod_flags << 24);
+      const mod_flags = mods_to_flags(m.map((m) => parseInt(m)));
+      const new_value = mask_mods(value) | (mod_flags << 24);
       onValueChanged(new_value);
     },
-    [value]
+    [value, onValueChanged]
   );
 
   return (
