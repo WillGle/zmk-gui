@@ -29,7 +29,7 @@ If applicable, add screenshots to help explain your problem.
  - Browser version:
  - Connection: USB or BLE
  - Firmware version:
- - Device: Curve E PCB Prototype 1
+ - Device/board: [e.g. Curve E PCB Prototype 1]
 
 **Additional context**
 Add any other context about the problem here.

@@ -1,6 +1,9 @@
 # ZMK GUI — local fork
 
-Web keymap editor for Curve E, based on ZMK Studio.
+Web keymap editor based on ZMK Studio, primarily used with Curve E.
+Other keyboards are supported when their firmware implements a compatible ZMK
+Studio protocol over an available browser USB/BLE transport. Device capabilities,
+layouts and layers come from firmware; no Curve E device restriction is applied.
 
 - Upstream: https://github.com/zmkfirmware/zmk-studio
 - Starting commit: `1bb6bb84a370c8917d8e4db15207087b26b3a844`
@@ -56,26 +59,83 @@ behavior and real-device acceptance remain unverified here.
 
 ## GitHub Actions
 
-The web-only fork uses one workflow, `.github/workflows/web-build.yml`:
+The web-only fork uses `.github/workflows/web-build.yml`, triggered by pushes,
+pull requests and manual dispatch on Ubuntu 24.04:
 
-- Runs on pushes, pull requests and manual dispatch, using Ubuntu 24.04 and
-  Node 22 with the npm download cache.
-- Runs `npm ci`, then `npm run build` (TypeScript checking and Vite bundling).
-- Cancels an older run for the same branch or pull request when updated, with
-  a 15-minute job limit.
-- Uploads successful output as the `curve-e-web` artifact, containing `dist/`,
-  LICENSE and NOTICE, retained for seven days. This is a downloadable build,
-  not a deployment or firmware image.
-- Has read-only repository permissions and requires no custom secrets.
+- Uses official `actions/checkout` 7.0.1, `actions/setup-node` 7.1.0 and
+  `actions/upload-artifact` 7.0.2, pinned to full commit SHAs verified against
+  their release tags on 2026-10-28. Comments identify the release versions.
+  These actions use Node 24 internally; the application build remains Node 22
+  to match local/Vercel configuration.
+- Uses read-only repository permissions, does not persist checkout credentials,
+  and caches npm downloads using `package-lock.json`.
+- Runs `npm ci --no-audit`, then a separate `npm audit --audit-level=low`,
+  `npm run lint`, `npm run build` (TypeScript and Vite), and
+  `npm run build-storybook -- --disable-telemetry` with Storybook output in the
+  runner's temporary directory. No maintained tests were added.
+- Audit checks both application and development dependencies. Any reported
+  advisory at low severity or higher fails the job. An unavailable npm audit
+  service also fails the step; audit errors are not silently ignored.
+- Cancels an older run for the same branch/pull request, with a 15-minute limit.
+- Uploads `curve-e-web` only after all checks pass, containing `dist/`, LICENSE
+  and NOTICE, retained for seven days. Storybook output is only validated;
+  it is not included in the web artifact.
 
-Lint is not a required CI gate yet because the inherited lint errors documented
-below remain unresolved. No tests were added. Vercel deployments are handled by
-the Vercel Git integration when configured; no Actions deployment, release,
-signing or firmware jobs are included.
+`.github/dependabot.yml` checks GitHub Actions updates weekly and groups them
+into reviewable pull requests, including updates to SHA pins. It does not
+configure npm updates or automatic merging. No custom secrets are required.
 
-Local validation: workflow YAML/configuration checks and `npm run build` passed;
-artifact inputs exist. The bundle-size warning remains. GitHub runner execution
-and artifact upload are not yet verified; these changes have not been pushed.
+Vercel deployment remains handled by its Git integration when configured.
+There are no Actions deployment, release, signing or firmware steps.
+
+Local upgrade verification: official release/commit/action inputs verified,
+checksum-verified actionlint 1.7.12 passed, workflow and Dependabot YAML/config
+checks passed, and the install/audit/lint/web-build/Storybook commands passed
+locally. npm audit reported zero vulnerabilities. Existing bundle-size warnings
+remain. GitHub-hosted runner execution, Dependabot PR creation and artifact
+upload remain unverified; these changes have not been pushed or deployed.
+
+## Dependency and lint follow-up — 2026-10-28
+
+Current local validation supersedes the older lint/audit counts in the historical
+verification sections below: **npm audit: 0 advisories; ESLint: 0 errors and
+0 warnings**, with all existing lint rules and `--max-warnings 0` retained.
+This describes the registry advisory database at verification time, not a claim
+that the application has no security defects.
+
+- Updated affected transitive dependencies within existing supported ranges,
+  including Babel, matching/glob utilities, YAML parsers and protobufjs.
+  Studio client remains 0.0.18, Storybook 8.6.19 and Vite 6.4.5.
+- Studio's `protobufjs` runtime is now 7.6.6, with `@protobufjs/utf8` 1.1.2,
+  satisfying the client's existing `^7.3.2` dependency. Generated schemas,
+  transport adapters and wire framing are unchanged.
+- The only override is scoped to `@storybook/addon-actions` → `uuid ^11.1.1`.
+  Storybook 8 requests uuid 9; its action handler uses the compatible `v4()` API.
+  CommonJS loading and the static Storybook browser action were verified
+  (a key click emitted an action with a valid UUID v4). Recheck/remove the
+  override when upgrading Storybook to a version declaring a patched uuid.
+- Repaired lint without disabling rules: safe `const` declarations, typed
+  notification publication/subscription, complete hook dependency lists with
+  stable device requests/mappers, and a separate layout-zoom utility.
+- Binding changes emit from user input handlers, avoiding draft reapplication
+  on parent renders. Modal cancellation uses `preventDefault()` with listener
+  cleanup; changing cancel/outside-click options takes effect immediately.
+- The web workflow now runs `npm run lint` before the production build.
+
+Verification: clean `npm ci` with lifecycle scripts passed, `npm run lint`
+passed, `npm run build` passed, and `npm run build-storybook -- --disable-telemetry`
+passed. Browser probes against real source modules and a framed protobuf mock
+passed 23 App checks plus UI binding/accessibility checks, and 14 additional
+hook/draft/modal checks in React StrictMode. They confirmed no fetch loop on
+unrelated renders, one reload after unlock, no binding echo on external updates,
+and Escape/outside-click behavior. No browser page errors occurred. Independent
+source review found no actionable regression in these scoped changes.
+
+Disposable evidence is in `/tmp/zmk-dependency-lint/`; no maintained tests were
+added. Existing large-bundle warnings and npm deprecation notices (including
+upstream glob 10) remain separate from the zero-advisory result. Firmware,
+hardware and device writes were not used. GitHub runner, Vercel deployment and
+real-device acceptance remain unverified; no commit, push or deployment.
 
 ## Web-only cleanup — 2026-10-28
 
@@ -86,7 +146,8 @@ and artifact upload are not yet verified; these changes have not been pushed.
   by pushes, pull requests or manual dispatch. No release or deployment steps.
 - Retained the Studio client/protocol, browser USB/BLE transports, firmware-driven
   layout/layers, UI editing, Storybook demos and Vercel static hosting config.
-- Curve E is the intended device; no board-name gate, fixed geometry, layer count
+- Curve E is the primary device; other compatible Studio devices may also use
+  the editor. No board-name gate, fixed geometry, layer count
   or serial port was introduced. No firmware changes or real-device writes.
 - LICENSE, NOTICE, contributor attribution and upstream acknowledgements remain.
 - `run-script-os` is retained because the Studio client requires it during
@@ -110,6 +171,73 @@ and artifact upload are not yet verified; these changes have not been pushed.
   HEAD. No changes to keyboard/binding/RPC/undo-redo modules, LICENSE or NOTICE.
 - No maintained tests added, firmware edits, device writes, commit, push or
   deployment performed. Existing remote workflows change only after a push.
+
+## Earlier audit fixes — 2026-10-28
+
+Implemented all 15 findings from the post-cleanup audit, following the explicit
+request to fix them. The earlier cleanup verification above describes that
+historical change only. This follow-up intentionally changes application RPC
+scheduling, connection lifecycle and Undo/Redo; the Studio client remains
+0.0.18 and its schemas, framing, browser transports and firmware are unchanged.
+
+- **F01:** RPC requests serialize per connection and time out after five seconds.
+  Abort cancels pending stream operations, releases locks and closes the session;
+  an abandoned connection cannot block a new connection's handshake.
+- **F02:** Updated Vite to 6.4.5, Storybook packages to 8.6.19 and the React SWC
+  plugin to 3.11.0. The Vite/Storybook core advisories identified in the audit
+  no longer appear in npm audit. No forced dependency repair was used.
+- **F03/F04:** Undo/Redo actions serialize, commit history only after success and
+  release the busy state after failure. Reset invalidates pending history work.
+- **F05/F06:** Session boundaries clear history, pending state and unlock state.
+  Discard/Reset refresh data only after successful responses for the current
+  connection. Late responses cannot restore a disconnected session. Pending
+  commands also reject mutation callbacks, including non-native drag controls.
+- **F07:** Invalid constants/layer parameters show an explicit unselected option,
+  instead of displaying a value that has not been applied.
+- **F08:** Layer reordering accounts for before/after drop placement and removal
+  of the source item.
+- **F09:** Binding rejection shows an error, restores the picker to the applied
+  binding and leaves history unchanged.
+- **F10/F11:** Layer rename is a named button outside the layer list; parameter
+  controls have distinct accessible names.
+- **F12/F13:** Key labels fall back through long/medium/short names and include
+  all eight modifier flags in both visible and accessible binding descriptions.
+- **F14:** About and License actions use keyboard-operable buttons.
+- **F15:** Physical-layout selection updates geometry and keymap together after
+  ACK. Rejection retains the previous layout; Undo also waits for ACK.
+
+### Verification and remaining limits
+
+- `npm run build` passed with TypeScript and Vite. The existing chunk-size
+  warning remains (main JavaScript about 806 kB, gzip 208 kB).
+- Storybook production build and development startup passed; the development
+  index contained 28 entries. Vite development HTTP/transform checks passed.
+- Disposable Web Streams probes passed eight assertions covering RPC timeout,
+  retry, serialization, firmware meta errors, abort, response mismatch, stream
+  locks and unhandled rejections.
+- Disposable Chromium probes using real React/source modules passed Undo/Redo
+  concurrency, rejection, reset and StrictMode checks; parameter placeholders,
+  modifier labels, keyboard rename/footer activation and layer drag checks.
+  Source-derived reorder probes covered all 32 source/target/drop combinations.
+- Full App in Chromium StrictMode used a framed protobuf transport fixture:
+  failed handshake/retry, rejected/accepted binding, Undo across lock/unlock,
+  unsaved status, Save failure/retry, rejected/accepted layout and layout Undo,
+  failed Discard/Reset, pending mutation rejection, and late Discard/Reset
+  followed by disconnect/reconnect passed. No browser page errors occurred.
+- ESLint still exits nonzero: **40 errors / 8 warnings**, down from the audited
+  83 / 20. Inherited lint debt remains; this is not a clean-lint claim.
+- Fresh npm audit reports **19 package vulnerability entries**: 1 low,
+  9 moderate, 8 high and 1 critical, down from 39. Remaining entries include
+  protobufjs and transitive development dependencies; exploit reachability has
+  not been established. Fixing F02 does not mean all dependencies are secure.
+- Independent source review found two gaps in the initial fixes (mutations
+  during pending commands and Undo after lock/unlock); both were repaired and
+  covered by the final probes. No remaining blocker was found in that review.
+- Probe scripts/logs are disposable files under `/tmp/zmk-fix-all/` and
+  `/tmp/zmk-*.mjs`/`.cjs`, not maintained tests in the repository.
+- No firmware edits, hardware access, device writes, commit, push or deployment.
+  Real Curve E USB/BLE, persistent Save, sleep/reconnect, GitHub runner/artifact
+  upload and Vercel HTTPS acceptance still require separate verification.
 
 ## Historical hosting verification (before web-only cleanup)
 
