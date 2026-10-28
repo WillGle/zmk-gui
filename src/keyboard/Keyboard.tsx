@@ -501,8 +501,8 @@ export default function Keyboard() {
   }, [keymap, selectedLayerIndex]);
 
   return (
-    <div className="grid grid-cols-[auto_1fr] grid-rows-[1fr_minmax(10em,auto)] bg-base-300 max-w-full min-w-0 min-h-0">
-      <div className="p-2 flex flex-col gap-2 bg-base-200 row-span-2">
+    <div className="grid grid-cols-1 grid-rows-[auto_minmax(16em,1fr)_auto] md:grid-cols-[auto_1fr] md:grid-rows-[minmax(16em,1fr)_minmax(10em,auto)] overflow-auto bg-base-300 max-w-full min-w-0 min-h-0">
+      <div className="p-2 flex flex-wrap flex-row md:flex-col gap-2 bg-base-200 md:row-span-2">
         {layouts && (
           <div className="col-start-3 row-start-1 row-end-2">
             <PhysicalLayoutPicker
@@ -530,7 +530,10 @@ export default function Keyboard() {
         )}
       </div>
       {layouts && keymap && behaviors && (
-        <div className="p-2 col-start-2 row-start-1 grid items-center justify-center relative min-w-0">
+        <div className={`p-8 pt-14 col-start-1 row-start-2 md:col-start-2 md:row-start-1 grid relative min-w-0 overflow-auto ${keymapScale === "auto" ? "items-center justify-center" : "items-start justify-start"}`}>
+          <p className="absolute top-3 left-4 right-24 text-sm font-semibold">
+            Layer {selectedLayerIndex}: {keymap.layers[selectedLayerIndex]?.name || "Unnamed"}
+          </p>
           <KeymapComp
             keymap={keymap}
             layout={layouts[selectedPhysicalLayoutIndex]}
@@ -541,6 +544,7 @@ export default function Keyboard() {
             onKeyPositionClicked={setSelectedKeyPosition}
           />
           <select
+            aria-label="Keyboard zoom"
             className="absolute top-2 right-2 h-8 rounded px-2"
             value={keymapScale}
             onChange={(e) => {
@@ -559,9 +563,20 @@ export default function Keyboard() {
           </select>
         </div>
       )}
+      {keymap && !selectedBinding && (
+        <div className="p-6 col-start-1 row-start-3 md:col-start-2 md:row-start-2 bg-base-200 text-center">
+          <p className="font-semibold">Select a key to edit its binding</p>
+          <p className="mt-2 text-sm">Choose a key → find a binding → check the layer → Save</p>
+        </div>
+      )}
       {keymap && selectedBinding && (
-        <div className="p-2 col-start-2 row-start-2 bg-base-200">
+        <div className="p-4 col-start-1 row-start-3 md:col-start-2 md:row-start-2 bg-base-200 overflow-auto">
+          <p className="mb-3 font-semibold">
+            Key {(selectedKeyPosition ?? 0) + 1} · Layer {selectedLayerIndex}: {keymap.layers[selectedLayerIndex]?.name || "Unnamed"}
+          </p>
+          <p className="mb-3 text-sm text-base-content/70">Choose a binding type, then search for a key or media action. Changes apply temporarily; use Save to keep them.</p>
           <BehaviorBindingPicker
+            key={`${selectedLayerIndex}-${selectedKeyPosition}`}
             binding={selectedBinding}
             behaviors={Object.values(behaviors)}
             layers={keymap.layers.map(({ id, name }, li) => ({

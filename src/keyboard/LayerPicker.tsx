@@ -133,7 +133,8 @@ export const LayerPicker = ({
         return;
       }
 
-      onLayerClicked?.(layer_items.findIndex((l) => s.has(l.id)));
+      const index = layer_items.findIndex((l) => s.has(l.id));
+      if (index >= 0) onLayerClicked?.(index);
     },
     [onLayerClicked, layer_items]
   );
@@ -173,6 +174,7 @@ export const LayerPicker = ({
           <button
             type="button"
             className="hover:text-primary-content hover:bg-primary rounded-sm"
+            aria-label="Remove selected layer"
             disabled={!canRemove}
             onClick={onRemoveClicked}
           >
@@ -182,6 +184,7 @@ export const LayerPicker = ({
         {onAddClicked && (
           <button
             type="button"
+            aria-label="Add layer"
             disabled={!canAdd}
             className="hover:text-primary-content ml-1 hover:bg-primary rounded-sm disabled:text-gray-500 disabled:hover:bg-base-300 disabled:cursor-not-allowed"
             onClick={onAddClicked}
@@ -208,7 +211,7 @@ export const LayerPicker = ({
             ? [layer_items[selectedLayerIndex].id]
             : []
         }
-        className="ml-2 items-center justify-center cursor-pointer"
+        className="ml-2 flex flex-wrap md:block gap-2 items-center justify-center cursor-pointer"
         onSelectionChange={selectionChanged}
         dragAndDropHooks={dragAndDropHooks}
         {...props}
@@ -216,9 +219,9 @@ export const LayerPicker = ({
         {(layer_item) => (
           <ListBoxItem
             textValue={layer_item.name}
-            className="p-1 b-1 my-1 group grid grid-cols-[1fr_auto] items-center aria-selected:bg-primary aria-selected:text-primary-content border rounded border-transparent border-solid hover:bg-base-300"
+            className="p-2 min-h-10 b-1 my-1 rac-focus-visible:outline rac-focus-visible:outline-2 rac-focus-visible:outline-accent group grid grid-cols-[1fr_auto] items-center aria-selected:bg-primary aria-selected:text-primary-content border rounded border-transparent border-solid hover:bg-base-300"
           >
-            <span>{layer_item.name}</span>
+            <span><span className="mr-2 opacity-70">{layer_item.index}</span>{layer_item.name}</span>
             <Pencil
               className="h-4 w-4 mx-1 invisible group-hover:visible"
               onClick={() =>
