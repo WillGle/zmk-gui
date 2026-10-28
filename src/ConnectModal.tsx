@@ -15,12 +15,11 @@ export interface ConnectModalProps {
   open?: boolean;
   transports: TransportFactory[];
   onTransportCreated: (t: RpcTransport) => void;
+  error?: string;
+  connecting?: boolean;
 }
 
-function simpleDevicePicker(
-  transports: TransportFactory[],
-  onTransportCreated: (t: RpcTransport) => void
-) {
+function DevicePicker({ transports, onTransportCreated, connecting }: ConnectModalProps) {
   const [selectedTransport, setSelectedTransport] = useState<
     TransportFactory | undefined
   >(undefined);
@@ -56,12 +55,13 @@ function simpleDevicePicker(
     return () => {
       ignore = true;
     };
-  }, [selectedTransport]);
+  }, [selectedTransport, onTransportCreated]);
 
-  let connections = transports.map((t) => (
+  const connections = transports.map((t) => (
     <li key={t.label} className="list-none">
       <button
         className="bg-base-300 hover:bg-primary hover:text-primary-content rounded px-2 py-1"
+        disabled={connecting || !!selectedTransport}
         type="button"
         onClick={async () => setSelectedTransport(t)}
       >
@@ -104,6 +104,8 @@ export const ConnectModal = ({
   open,
   transports,
   onTransportCreated,
+  error,
+  connecting,
 }: ConnectModalProps) => {
   const dialog = useModalRef(open || false, false, false);
 
@@ -112,8 +114,10 @@ export const ConnectModal = ({
   return (
     <GenericModal ref={dialog} className="max-w-xl">
       <h1 className="text-xl">Curve E Keymap Editor</h1>
+      {error && <p role="alert" className="my-3">{error}</p>}
+      {connecting && <p role="status">Connecting…</p>}
       {haveTransports
-        ? simpleDevicePicker(transports, onTransportCreated)
+        ? <DevicePicker transports={transports} onTransportCreated={onTransportCreated} connecting={connecting} />
         : noTransportsOptionsPrompt()}
     </GenericModal>
   );

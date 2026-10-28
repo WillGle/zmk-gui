@@ -11,13 +11,13 @@ export const AppFooter = ({
     <div className="grid justify-center p-1 bg-base-200">
       <div>
         <span>&copy; 2026 - The ZMK Contributors</span> -{" "}
-        <a className="hover:text-primary hover:cursor-pointer" onClick={onShowAbout}>
+        <button type="button" className="hover:text-primary hover:cursor-pointer" onClick={onShowAbout}>
           About ZMK Studio
-        </a>{" "}
+        </button>{" "}
         -{" "}
-        <a className="hover:text-primary hover:cursor-pointer" onClick={onShowLicenseNotice}>
+        <button type="button" className="hover:text-primary hover:cursor-pointer" onClick={onShowLicenseNotice}>
           License NOTICE
-        </a>
+        </button>
       </div>
     </div>
   );

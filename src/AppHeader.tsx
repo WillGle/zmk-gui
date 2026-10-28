@@ -5,9 +5,10 @@ import {
   MenuTrigger,
   Popover,
 } from "react-aria-components";
+import type { RequestResponse } from "@zmkfirmware/zmk-studio-ts-client";
 import { useConnectedDeviceData } from "./rpc/useConnectedDeviceData";
 import { useSub } from "./usePubSub";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useModalRef } from "./misc/useModalRef";
 import { LockStateContext } from "./rpc/LockStateContext";
 import { LockState } from "@zmkfirmware/zmk-studio-ts-client/core";
@@ -18,6 +19,7 @@ import { GenericModal } from "./GenericModal";
 
 export interface AppHeaderProps {
   connectedDeviceLabel?: string;
+  busy?: boolean;
   onSave?: () => void | Promise<void>;
   onDiscard?: () => void | Promise<void>;
   onUndo?: () => Promise<void>;
@@ -28,8 +30,13 @@ export interface AppHeaderProps {
   canRedo?: boolean;
 }
 
+const unsavedRequest = { keymap: { checkUnsavedChanges: true } };
+const unsavedFromResponse = (response: RequestResponse) =>
+  response.keymap?.checkUnsavedChanges;
+
 export const AppHeader = ({
   connectedDeviceLabel,
+  busy = false,
   canRedo,
   canUndo,
   onRedo,
@@ -44,6 +51,8 @@ export const AppHeader = ({
 
   const lockState = useContext(LockStateContext);
   const connectionState = useContext(ConnectionContext);
+  const connectionRef = useRef(connectionState);
+  connectionRef.current = connectionState;
 
   useEffect(() => {
     if (
@@ -53,12 +62,12 @@ export const AppHeader = ({
     ) {
       setShowSettingsReset(false);
     }
-  }, [lockState, showSettingsReset]);
+  }, [connectionState.conn, lockState, showSettingsReset]);
 
   const showSettingsRef = useModalRef(showSettingsReset);
   const [unsaved, setUnsaved] = useConnectedDeviceData<boolean>(
-    { keymap: { checkUnsavedChanges: true } },
-    (r) => r.keymap?.checkUnsavedChanges
+    unsavedRequest,
+    unsavedFromResponse
   );
 
   useSub("rpc_notification.keymap.unsavedChangesStatusChanged", (unsaved) =>
@@ -71,13 +80,14 @@ export const AppHeader = ({
 
   const save = async () => {
     if (!onSave || saveStatus === "saving") return;
+    const connection = connectionState;
     setSaveStatus("saving");
     try {
       await onSave();
-      setSaveStatus("saved");
+      if (connectionRef.current === connection && !connection.signal?.aborted) setSaveStatus("saved");
     } catch (error) {
       console.error("Failed to save changes", error);
-      setSaveStatus("error");
+      if (connectionRef.current === connection && !connection.signal?.aborted) setSaveStatus("error");
     }
   };
 
@@ -132,6 +142,7 @@ export const AppHeader = ({
             </MenuItem>
             <MenuItem
               className="px-2 py-1 hover:bg-base-200"
+              isDisabled={busy}
               onAction={() => setShowSettingsReset(true)}
             >
               Restore Stock Settings
@@ -169,7 +180,7 @@ export const AppHeader = ({
         <Tooltip label="Save">
           <Button
             className="flex items-center justify-center p-1.5 rounded enabled:hover:bg-base-300 disabled:opacity-50"
-            isDisabled={!unsaved || !connectionState.conn || lockState !== LockState.ZMK_STUDIO_CORE_LOCK_STATE_UNLOCKED || saveStatus === "saving"}
+            isDisabled={busy || !unsaved || !connectionState.conn || lockState !== LockState.ZMK_STUDIO_CORE_LOCK_STATE_UNLOCKED || saveStatus === "saving"}
             onPress={save}
           >
             <Save className="inline-block w-4 mx-1" aria-hidden="true" />
@@ -180,7 +191,7 @@ export const AppHeader = ({
           <Button
             className="flex items-center justify-center p-1.5 rounded enabled:hover:bg-base-300 disabled:opacity-50"
             onPress={onDiscard}
-            isDisabled={!unsaved}
+            isDisabled={busy || !unsaved}
           >
             <Trash2 className="inline-block w-4 mx-1" aria-label="Discard" />
           </Button>

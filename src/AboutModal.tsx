@@ -201,7 +201,9 @@ export const AboutModal = ({ open, onClose }: AboutModalProps) => {
       </div>
       <div>
         <p className="py-1 mr-2">
-          Curve E Keymap Editor is a web-only fork of ZMK Studio for Curve E.
+          Curve E Keymap Editor is a web-only fork of ZMK Studio, primarily used
+          with Curve E. Other keyboards with compatible ZMK Studio firmware and
+          browser USB/BLE support can also use the editor.
           The upstream project and its sponsors are acknowledged below.
         </p>
         <p className="py-1 mr-2">

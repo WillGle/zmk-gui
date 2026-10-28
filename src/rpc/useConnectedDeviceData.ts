@@ -12,17 +12,15 @@ export function useConnectedDeviceData<T>(
   response_mapper: (resp: RequestResponse) => T | undefined,
   requireUnlock?: boolean
 ): [T | undefined, React.Dispatch<SetStateAction<T | undefined>>] {
-  let connection = useContext(ConnectionContext);
-  let lockState = useContext(LockStateContext);
-  let [data, setData] = useState<T | undefined>(undefined);
+  const connection = useContext(ConnectionContext);
+  const lockState = useContext(LockStateContext);
+  const [data, setData] = useState<T | undefined>(undefined);
+
+  const canLoad = !requireUnlock || lockState === LockState.ZMK_STUDIO_CORE_LOCK_STATE_UNLOCKED;
 
   useEffect(
     () => {
-      if (
-        !connection.conn ||
-        (requireUnlock &&
-          lockState != LockState.ZMK_STUDIO_CORE_LOCK_STATE_UNLOCKED)
-      ) {
+      if (!connection.conn || !canLoad) {
         setData(undefined);
         return;
       }
@@ -33,7 +31,7 @@ export function useConnectedDeviceData<T>(
           return;
         }
 
-        let response = response_mapper(await call_rpc(connection.conn, req));
+        const response = response_mapper(await call_rpc(connection.conn, req));
 
         if (!ignore) {
           setData(response);
@@ -41,15 +39,15 @@ export function useConnectedDeviceData<T>(
       }
 
       let ignore = false;
-      startRequest();
+      startRequest().catch((error) => {
+        if (!ignore) console.error("Failed to load device data", error);
+      });
 
       return () => {
         ignore = true;
       };
     },
-    requireUnlock
-      ? [connection, requireUnlock, lockState]
-      : [connection, requireUnlock]
+    [connection, canLoad, req, response_mapper]
   );
 
   return [data, setData];
