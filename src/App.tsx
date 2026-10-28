@@ -202,19 +202,15 @@ function App() {
     updateLockState();
   }, [conn, setLockState]);
 
-  const save = useCallback(() => {
-    async function doSave() {
-      if (!conn.conn) {
-        return;
-      }
-
-      let resp = await call_rpc(conn.conn, { keymap: { saveChanges: true } });
-      if (!resp.keymap?.saveChanges || resp.keymap?.saveChanges.err) {
-        console.error("Failed to save changes", resp.keymap?.saveChanges);
-      }
+  const save = useCallback(async () => {
+    if (!conn.conn) {
+      throw new Error("Not connected");
     }
 
-    doSave();
+    const resp = await call_rpc(conn.conn, { keymap: { saveChanges: true } });
+    if (!resp.keymap?.saveChanges || resp.keymap.saveChanges.err) {
+      throw new Error("Device rejected Save");
+    }
   }, [conn]);
 
   const discard = useCallback(() => {

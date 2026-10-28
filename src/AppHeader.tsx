@@ -39,6 +39,7 @@ export const AppHeader = ({
   onDisconnect,
   onResetSettings,
 }: AppHeaderProps) => {
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [showSettingsReset, setShowSettingsReset] = useState(false);
 
   const lockState = useContext(LockStateContext);
@@ -64,8 +65,24 @@ export const AppHeader = ({
     setUnsaved(unsaved)
   );
 
+  useEffect(() => {
+    setSaveStatus("idle");
+  }, [connectionState, unsaved]);
+
+  const save = async () => {
+    if (!onSave || saveStatus === "saving") return;
+    setSaveStatus("saving");
+    try {
+      await onSave();
+      setSaveStatus("saved");
+    } catch (error) {
+      console.error("Failed to save changes", error);
+      setSaveStatus("error");
+    }
+  };
+
   return (
-    <header className="top-0 left-0 right-0 grid grid-cols-[1fr_auto_1fr] items-center justify-between h-10 max-w-full">
+    <header className="top-0 left-0 right-0 flex items-center justify-between min-h-14 max-w-full gap-2 flex-wrap">
       <div className="flex px-3 items-center gap-1">
         <img src="/zmk.svg" alt="ZMK Logo" className="h-8 rounded" />
         <p>Studio</p>
@@ -122,7 +139,10 @@ export const AppHeader = ({
           </Menu>
         </Popover>
       </MenuTrigger>
-      <div className="flex justify-end gap-1 px-2">
+      <div className="flex justify-end items-center flex-wrap gap-2 px-2">
+        <span role="status" aria-live="polite" className="text-sm">
+          {!connectionState.conn ? "Disconnected" : saveStatus === "saving" ? "Saving…" : saveStatus === "error" ? "Save failed. Try again." : unsaved ? "Unsaved changes" : saveStatus === "saved" ? "Saved successfully" : unsaved === false ? "All changes saved" : "Reading save status…"}
+        </span>
         {onUndo && (
           <Tooltip label="Undo">
             <Button
@@ -149,10 +169,11 @@ export const AppHeader = ({
         <Tooltip label="Save">
           <Button
             className="flex items-center justify-center p-1.5 rounded enabled:hover:bg-base-300 disabled:opacity-50"
-            isDisabled={!unsaved}
-            onPress={onSave}
+            isDisabled={!unsaved || !connectionState.conn || lockState !== LockState.ZMK_STUDIO_CORE_LOCK_STATE_UNLOCKED || saveStatus === "saving"}
+            onPress={save}
           >
-            <Save className="inline-block w-4 mx-1" aria-label="Save" />
+            <Save className="inline-block w-4 mx-1" aria-hidden="true" />
+            <span>{saveStatus === "saving" ? "Saving…" : "Save"}</span>
           </Button>
         </Tooltip>
         <Tooltip label="Discard">
