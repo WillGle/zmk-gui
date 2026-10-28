@@ -85,7 +85,7 @@ export const AppHeader = ({
     <header className="top-0 left-0 right-0 flex items-center justify-between min-h-14 max-w-full gap-2 flex-wrap">
       <div className="flex px-3 items-center gap-1">
         <img src="/zmk.svg" alt="ZMK Logo" className="h-8 rounded" />
-        <p>Studio</p>
+        <p>Curve E</p>
       </div>
       <GenericModal ref={showSettingsRef} className="max-w-[50vw]">
         <h2 className="my-2 text-lg">Restore Stock Settings</h2>

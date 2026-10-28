@@ -25,9 +25,11 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment (please complete the following information):**
  - OS: [e.g. iOS]
- - Browser or App [e.g. chrome, edge, app]
- - Version [e.g. 22]
- - Device [e.g. Corne with nice!nano v2]
+ - Browser [e.g. Chrome, Edge]
+ - Browser version:
+ - Connection: USB or BLE
+ - Firmware version:
+ - Device: Curve E PCB Prototype 1
 
 **Additional context**
 Add any other context about the problem here.
