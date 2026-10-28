@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { Key } from "./Key";
+import type { LayoutZoom } from "./layoutZoom";
 
 export type KeyPosition = PropsWithChildren<{
   id: string;
@@ -19,15 +20,6 @@ export type KeyPosition = PropsWithChildren<{
   rx?: number;
   ry?: number;
 }>;
-
-export type LayoutZoom = number | "auto";
-
-export function deserializeLayoutZoom(value: string): LayoutZoom {
-  if (value === "auto") {
-    return "auto";
-  }
-  return parseFloat(value) || "auto";
-}
 
 interface PhysicalLayoutProps {
   positions: Array<KeyPosition>;
@@ -50,8 +42,8 @@ function scalePosition(
   { x, y, r, rx, ry }: PhysicalLayoutPositionLocation,
   oneU: number,
 ): CSSProperties {
-  let left = x * oneU;
-  let top = y * oneU;
+  const left = x * oneU;
+  const top = y * oneU;
   let transformOrigin = undefined;
   let transform = undefined;
   const transformStyle = "preserve-3d";
@@ -60,8 +52,8 @@ function scalePosition(
     // Use `??` so an explicit rotation origin of 0 is honored; `rx || x`
     // collapsed a legitimate 0 back to the key's own position, pivoting the
     // key around its own corner instead of the layout origin (#97).
-    let transformX = ((rx ?? x) - x) * oneU;
-    let transformY = ((ry ?? y) - y) * oneU;
+    const transformX = ((rx ?? x) - x) * oneU;
+    const transformY = ((ry ?? y) - y) * oneU;
     transformOrigin = `${transformX}px ${transformY}px`;
     transform = `rotate(${r}deg)`;
   }
@@ -120,10 +112,10 @@ export const PhysicalLayout = ({
   }, [props.zoom]);
 
   // TODO: Add a bit of padding for rotation when supported
-  let rightMost = positions
+  const rightMost = positions
     .map((k) => k.x + k.width)
     .reduce((a, b) => Math.max(a, b), 0);
-  let bottomMost = positions
+  const bottomMost = positions
     .map((k) => k.y + k.height)
     .reduce((a, b) => Math.max(a, b), 0);
 

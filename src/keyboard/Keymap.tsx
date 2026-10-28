@@ -1,3 +1,4 @@
+import type { LayoutZoom } from "./layoutZoom";
 import {
   PhysicalLayout,
   Keymap as KeymapMsg,
@@ -5,10 +6,9 @@ import {
 import type { GetBehaviorDetailsResponse } from "@zmkfirmware/zmk-studio-ts-client/behaviors";
 
 import {
-  LayoutZoom,
   PhysicalLayout as PhysicalLayoutComp,
 } from "./PhysicalLayout";
-import { hid_usage_get_labels, hid_usage_page_and_id_from_usage } from "../hid-usages";
+import { hid_usage_get_binding_labels } from "../hid-usages";
 import { HidUsageLabel } from "./HidUsageLabel";
 
 type BehaviorMap = Record<number, GetBehaviorDetailsResponse>;
@@ -52,8 +52,7 @@ export const Keymap = ({
     const binding = keymap.layers[selectedLayerIndex].bindings[i];
     const behavior = behaviors[binding.behaviorId];
     const hasHidUsage = behavior?.metadata.some((set) => set.param1.some((p) => p.hidUsage));
-    const [page, usage] = hid_usage_page_and_id_from_usage(binding.param1);
-    const keyLabel = hasHidUsage ? hid_usage_get_labels(page & 0xff, usage).long : undefined;
+    const keyLabel = hasHidUsage ? hid_usage_get_binding_labels(binding.param1).long : undefined;
 
     return {
       id: `${keymap.layers[selectedLayerIndex].id}-${i}`,

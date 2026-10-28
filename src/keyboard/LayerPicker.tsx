@@ -139,7 +139,7 @@ export const LayerPicker = ({
     [onLayerClicked, layer_items]
   );
 
-  let { dragAndDropHooks } = useDragAndDrop({
+  const { dragAndDropHooks } = useDragAndDrop({
     renderDropIndicator(target) {
       return (
         <DropIndicator
@@ -151,9 +151,14 @@ export const LayerPicker = ({
     getItems: (keys) =>
       [...keys].map((key) => ({ "text/plain": key.toLocaleString() })),
     onReorder(e) {
-      let startIndex = layer_items.findIndex((l) => e.keys.has(l.id));
-      let endIndex = layer_items.findIndex((l) => l.id === e.target.key);
-      onLayerMoved?.(startIndex, endIndex);
+      const startIndex = layer_items.findIndex((l) => e.keys.has(l.id));
+      const targetIndex = layer_items.findIndex((l) => l.id === e.target.key);
+      if (startIndex < 0 || targetIndex < 0) return;
+
+      // Drop positions refer to the list before the source layer is removed.
+      let endIndex = targetIndex + (e.target.dropPosition === "after" ? 1 : 0);
+      if (startIndex < endIndex) endIndex -= 1;
+      if (startIndex !== endIndex) onLayerMoved?.(startIndex, endIndex);
     },
   });
 
@@ -168,8 +173,18 @@ export const LayerPicker = ({
 
   return (
     <div className="flex flex-col min-w-40">
-      <div className="grid grid-cols-[1fr_auto_auto] items-center">
+      <div className="grid grid-cols-[1fr_auto_auto_auto] items-center">
         <Label className="after:content-[':'] text-sm">Layers</Label>
+        {onLayerNameChanged && layer_items[selectedLayerIndex] && (
+          <button
+            type="button"
+            className="hover:text-primary-content hover:bg-primary rounded-sm mr-1"
+            aria-label={`Rename layer ${layer_items[selectedLayerIndex].name}`}
+            onClick={() => setEditLabelData(layer_items[selectedLayerIndex])}
+          >
+            <Pencil className="size-4" aria-hidden="true" />
+          </button>
+        )}
         {onRemoveClicked && (
           <button
             type="button"
@@ -222,12 +237,6 @@ export const LayerPicker = ({
             className="p-2 min-h-10 b-1 my-1 rac-focus-visible:outline rac-focus-visible:outline-2 rac-focus-visible:outline-accent group grid grid-cols-[1fr_auto] items-center aria-selected:bg-primary aria-selected:text-primary-content border rounded border-transparent border-solid hover:bg-base-300"
           >
             <span><span className="mr-2 opacity-70">{layer_item.index}</span>{layer_item.name}</span>
-            <Pencil
-              className="h-4 w-4 mx-1 invisible group-hover:visible"
-              onClick={() =>
-                setEditLabelData({ id: layer_item.id, name: layer_item.name })
-              }
-            />
           </ListBoxItem>
         )}
       </ListBox>
