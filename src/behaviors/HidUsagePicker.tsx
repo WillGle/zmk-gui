@@ -17,7 +17,7 @@ import {
   hid_usage_from_page_and_id,
   hid_usage_page_get_ids,
 } from "../hid-usages";
-import { useCallback, useMemo } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 export interface HidUsagePage {
@@ -33,9 +33,9 @@ export interface HidUsagePickerProps {
   onValueChanged: (value?: number) => void;
 }
 
-type UsageSectionProps = HidUsagePage;
+type UsageSectionProps = HidUsagePage & { query: string };
 
-const UsageSection = ({ id, min, max }: UsageSectionProps) => {
+const UsageSection = ({ id, min, max, query }: UsageSectionProps) => {
   const info = useMemo(() => hid_usage_page_get_ids(id), [id]);
 
   let usages = useMemo(() => {
@@ -48,8 +48,8 @@ const UsageSection = ({ id, min, max }: UsageSectionProps) => {
       );
     }
 
-    return usages;
-  }, [id, min, max, info]);
+    return usages.filter((usage) => usage.Name.toLowerCase().includes(query.trim().toLowerCase()));
+  }, [id, min, max, info, query]);
 
   return (
     <Section id={id}>
@@ -115,6 +115,8 @@ export const HidUsagePicker = ({
   usagePages,
   onValueChanged,
 }: HidUsagePickerProps) => {
+  const labelId = useId();
+  const [query, setQuery] = useState("");
   const mods = useMemo(() => {
     let flags = value ? value >> 24 : 0;
 
@@ -148,32 +150,35 @@ export const HidUsagePicker = ({
   );
 
   return (
-    <div className="flex gap-2 relative">
-      {label && <Label id="hid-usage-picker">{label}:</Label>}
+    <div className="flex flex-wrap gap-3 relative items-center">
+      {label && <Label id={labelId}>{label}:</Label>}
       <ComboBox
         selectedKey={value ? mask_mods(value) : null}
         onSelectionChange={selectionChanged}
-        aria-labelledby="hid-usage-picker"
+        aria-labelledby={label ? labelId : undefined}
+        aria-label={label ? undefined : "Key or media binding"}
+        onInputChange={setQuery}
+        onOpenChange={(open) => { if (!open) setQuery(""); }}
       >
         <div className="flex">
-          <Input className="p-1 rounded-l" />
-          <Button className="rounded-r bg-primary text-primary-content w-8 h-8 flex justify-center items-center">
-            <ChevronDown className="size-4" />
+          <Input placeholder="Search keys or media…" className="h-10 p-2 rounded-l bg-base-100" />
+          <Button aria-label="Show keys and media" className="rounded-r bg-primary text-primary-content w-10 h-10 flex justify-center items-center">
+            <ChevronDown className="size-4" aria-hidden="true" />
           </Button>
         </div>
-        <Popover className="w-[var(--trigger-width)] max-h-4 shadow-md text-base-content rounded border-base-content bg-base-100">
+        <Popover className="w-[var(--trigger-width)] shadow-md text-base-content rounded border-base-content bg-base-100">
           <ListBox
             items={usagePages}
             className="block max-h-[30vh] min-h-[unset] overflow-auto p-2"
             selectionMode="single"
           >
-            {({ id, min, max }) => <UsageSection id={id} min={min} max={max} />}
+            {({ id, min, max }) => <UsageSection id={id} min={min} max={max} query={query} />}
           </ListBox>
         </Popover>
       </ComboBox>
       <CheckboxGroup
         aria-label="Implicit Modifiers"
-        className="grid grid-flow-col gap-x-px auto-cols-[minmax(min-content,1fr)] content-stretch divide-x rounded-md"
+        className="flex flex-wrap gap-1 rounded-md"
         value={mods}
         onChange={modifiersChanged}
       >
@@ -181,7 +186,7 @@ export const HidUsagePicker = ({
           <Checkbox
             key={m}
             value={m.toLocaleString()}
-            className="text-nowrap cursor-pointer grid px-2 content-center justify-center rac-selected:bg-primary border-base-100 bg-base-300 hover:bg-base-100 first:rounded-s-md last:rounded-e-md rac-selected:text-primary-content"
+            className="text-nowrap cursor-pointer grid px-2 min-h-10 content-center justify-center rac-selected:bg-primary border-base-100 bg-base-300 hover:bg-base-100 first:rounded-s-md last:rounded-e-md rac-selected:text-primary-content"
           >
             {mod_labels[m]}
           </Checkbox>

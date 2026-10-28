@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import {
   GetBehaviorDetailsResponse,
@@ -45,6 +45,9 @@ export const BehaviorBindingPicker = ({
   behaviors,
   onBindingChanged,
 }: BehaviorBindingPickerProps) => {
+  const searchId = useId();
+  const behaviorSelectId = useId();
+  const [query, setQuery] = useState("");
   const [behaviorId, setBehaviorId] = useState(binding.behaviorId);
   const [param1, setParam1] = useState<number | undefined>(binding.param1);
   const [param2, setParam2] = useState<number | undefined>(binding.param2);
@@ -55,8 +58,12 @@ export const BehaviorBindingPicker = ({
   );
 
   const sortedBehaviors = useMemo(
-    () => behaviors.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    () => [...behaviors].sort((a, b) => a.displayName.localeCompare(b.displayName)),
     [behaviors]
+  );
+
+  const filteredBehaviors = sortedBehaviors.filter((b) =>
+    b.displayName.toLowerCase().includes(query.trim().toLowerCase())
   );
 
   useEffect(() => {
@@ -100,23 +107,49 @@ export const BehaviorBindingPicker = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div>
-        <label>Behavior: </label>
-        <select
-          value={behaviorId}
-          className="h-8 rounded"
-          onChange={(e) => {
-            setBehaviorId(parseInt(e.target.value));
-            setParam1(0);
-            setParam2(0);
-          }}
-        >
-          {sortedBehaviors.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.displayName}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-col gap-1 min-w-0 max-w-full">
+          <label htmlFor={searchId}>Find binding</label>
+          <input
+            id={searchId}
+            type="search"
+            placeholder="Search binding types…"
+            className="h-10 rounded px-3 max-w-full bg-base-100 border border-base-content/20"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1 min-w-0 max-w-full">
+          <label htmlFor={behaviorSelectId}>Binding type</label>
+          <select
+            id={behaviorSelectId}
+            value={behaviorId}
+            className="h-10 rounded px-3 max-w-full bg-base-100"
+            onChange={(e) => {
+              setBehaviorId(parseInt(e.target.value));
+              setParam1(0);
+              setParam2(0);
+            }}
+          >
+            {!filteredBehaviors.some((b) => b.id === behaviorId) && (
+              <option value={behaviorId}>
+                {behaviors.find((b) => b.id === behaviorId)?.displayName || "Current binding"} (current)
+              </option>
+            )}
+            {["Keys & media", "Layers", "Other behaviors"].map((group) => (
+              <optgroup key={group} label={group}>
+                {filteredBehaviors.filter((b) => {
+                  const parameters = b.metadata.flatMap((m) => [...m.param1, ...m.param2]);
+                  const category = parameters.some((p) => p.hidUsage) ? "Keys & media" : parameters.some((p) => p.layerId) ? "Layers" : "Other behaviors";
+                  return category === group;
+                }).map((b) => <option key={b.id} value={b.id}>{b.displayName}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <p className="text-sm text-base-content/70" role="status">
+          {filteredBehaviors.length} binding types found
+        </p>
       </div>
       {metadata && (
         <BehaviorParametersPicker
