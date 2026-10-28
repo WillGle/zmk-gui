@@ -1,22 +1,11 @@
 import { useContext, useMemo } from "react";
 
-import type { RpcTransport } from "@zmkfirmware/zmk-studio-ts-client/transport/index";
-import type { AvailableDevice } from "./tauri/index";
 import { LockStateContext } from "./rpc/LockStateContext";
 import { LockState } from "@zmkfirmware/zmk-studio-ts-client/core";
 import { ConnectionContext } from "./rpc/ConnectionContext";
 import { useModalRef } from "./misc/useModalRef";
 import { GenericModal } from "./GenericModal";
 import { ExternalLink } from "./misc/ExternalLink";
-
-export type TransportFactory = {
-  label: string;
-  connect?: () => Promise<RpcTransport>;
-  pick_and_connect?: {
-    list: () => Promise<Array<AvailableDevice>>;
-    connect: (dev: AvailableDevice) => Promise<RpcTransport>;
-  };
-};
 
 export interface UnlockModalProps {}
 
