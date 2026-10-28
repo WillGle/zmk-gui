@@ -113,7 +113,7 @@ export const ConnectModal = ({
 
   return (
     <GenericModal ref={dialog} className="max-w-xl">
-      <h1 className="text-xl">Curve E Keymap Editor</h1>
+      <h1 className="text-xl">ZMK Keymap Editor</h1>
       {error && <p role="alert" className="my-3">{error}</p>}
       {connecting && <p role="status">Connecting…</p>}
       {haveTransports
